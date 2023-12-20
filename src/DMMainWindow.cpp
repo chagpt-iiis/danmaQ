@@ -80,8 +80,8 @@ DMMainWindow::DMMainWindow(QApplication *app)
 
 	this->setLayout(layout);
 
-	this->fontSize = 18;
-	this->lineHeight = this->fontSize * 1.8;
+	this->fontSize = 20;
+	this->lineHeight = 32;
 	this->fontFamily = QString(
 		"WenQuanYi Micro Hei, Source Han Sans CN, Source Han Sans, WenQuanYi Zen Hei,"
 		"Microsoft YaHei, SimHei, "

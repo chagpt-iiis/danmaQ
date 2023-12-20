@@ -49,7 +49,7 @@ public:
     Danmaku(QString text, int color, Position position, int slot, DMCanvas *parent, DMMainWindow *mainWindow);
 	// Danmaku(QString text, QWidget *parent=0);
 	Position position;
-	int slot;
+	int slot, y;
 	DMCanvas *canvas;
     DMMainWindow *mainWindow;
 
