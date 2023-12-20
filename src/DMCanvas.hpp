@@ -19,6 +19,7 @@
 #define DMCANVAS_HPP
 #include <QWidget>
 #include <QVector>
+#include <QSet>
 #include "DMMainWindow.hpp"
 #include "Danmaku.hpp"
 
@@ -42,6 +43,7 @@ public slots:
 
 private:
 	QVector<bool> fly_slots, fixed_slots;
+	QSet<Danmaku *> vertical_slots;
 	void init_slots();
 	int allocate_slot(Position);
 	QString escape_text(QString &);

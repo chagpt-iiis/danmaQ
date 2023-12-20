@@ -28,14 +28,15 @@ enum Position
 	UNUSED0 = 0,
 	topScrolling,
 	bottomScrolling,
-	UNUSED3,
+	vertical,
 	bottomStatic,
 	topStatic,
 	topReverse
 };
-const QVector<QString> position_name = {"UNUSED0", "topScrolling", "bottomScrolling", "UNUSED3", "bottomStatic", "topStatic", "topReverse"};
+const QVector<QString> position_name = {"UNUSED0", "topScrolling", "bottomScrolling", "vertical", "bottomStatic", "topStatic", "topReverse"};
 
 const int VMARGIN = 20;
+const int WIDTH_LIMIT = 150;
 
 class DMCanvas;
 class DMMainWindow;
@@ -52,6 +53,8 @@ public:
 	DMCanvas *canvas;
     DMMainWindow *mainWindow;
 
+	void shift_up(int dy);
+
 public slots:
 	void linearMotion(int startX, int startY, int endX, int endY);
 	void clean_close();
@@ -62,7 +65,7 @@ signals:
 private:
 	static QString style_tmpl;
 	static QString escape_text(QString text);
-	void init_position();
+	void init_position(bool initial = true);
 	
 };
 

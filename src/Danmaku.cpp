@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Danmaku.hpp"
 #include <QtCore>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -58,10 +59,11 @@ Danmaku::Danmaku(QString text, int color, Position position, int slot, DMCanvas 
 	this->canvas = parent;
 	this->mainWindow = mainWindow;
 	this->setAttribute(Qt::WA_DeleteOnClose);
+	this->setTextFormat(Qt::PlainText);
 
-	int r = (color >> 24) & 255, g = (color >> 16) & 255, b = (color >> 8) & 255;
+	int r = (color >> 24) & 255, g = (color >> 16) & 255, b = (color >> 8) & 255, a = color & 255;
 
-	QString tcolor = QString("#%1").arg(color>>8, 6, 16, QChar('0'));
+	QString tcolor = QString("rgba(%1, %2, %3, %4%)").arg(r).arg(g).arg(b).arg(a / 2.55);
 	QColor bcolor = r + g + b > 400 ? QColor(0, 0, 0) : QColor(255, 255, 255);
 
 	QString style = style_tmpl
@@ -112,7 +114,7 @@ QString Danmaku::style_tmpl = QString(
 	"font-family: %2;"
 	"color: %3;");
 
-void Danmaku::init_position()
+void Danmaku::init_position(bool initial)
 {
 	int startX, startY, endX, endY;
 	startY = endY = this->canvas->slot_y(this->slot);
@@ -135,9 +137,37 @@ void Danmaku::init_position()
 		startX = endX = (this->canvas->screen.width() - this->width()) / 2;
 		this->linearMotion(startX, startY, endX, endY);
 		break;
+	case vertical: {
+		int x = 150;
+		this->setMaximumWidth(WIDTH_LIMIT);
+		this->setWordWrap(true);
+		this->adjustSize();
+		QPoint p = this->canvas->getGlobalPoint(QPoint(x, startY - (this->height() - 18)));
+		this->move(p);
+		QTimer *timer = new QTimer(this);
+		timer->setInterval(20 * 1000);
+		connect(timer, &QTimer::timeout, this, &Danmaku::clean_close);
+		timer->start();
+		break;
+	}
 	default:
 		break;
 	}
+}
+
+void Danmaku::shift_up(int dy) {
+	QRect cur = this->geometry();
+	int newY = cur.top() - dy;
+	if (newY < VMARGIN) {
+		return this->clean_close();
+	}
+	QRect nxt = cur;
+	nxt.moveTop(newY);
+	QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry", this);
+	animation->setDuration(100);
+	animation->setStartValue(cur);
+	animation->setEndValue(nxt);
+	animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void Danmaku::linearMotion(int startX, int startY, int endX, int endY)

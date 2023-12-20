@@ -70,12 +70,11 @@ DMCanvas::DMCanvas(DMMainWindow *parent): DMCanvas(0, parent){};
 void DMCanvas::init_slots()
 {
 	int height = this->screen.height();
-	int nlines = (height - 2*VMARGIN) / (this->mainWindow->lineHeight);
-	myDebug << nlines << this->mainWindow->lineHeight;
-	for(int i=0; i<nlines; i++) {
-		this->fly_slots.append(false);
-		this->fixed_slots.append(false);
-	}
+	int nlines = (height - 2 * VMARGIN) / this->mainWindow->lineHeight;
+	myDebug << "nlines =" << nlines << ", lineHeight =" << this->mainWindow->lineHeight;
+	this->fly_slots = QVector<bool>(nlines, false);
+	this->fixed_slots = QVector<bool>(nlines, false);
+	this->vertical_slots = QSet<Danmaku*>();
 }
 
 QPoint DMCanvas::getGlobalPoint(QPoint p)
@@ -88,14 +87,14 @@ int DMCanvas::allocate_slot(Position position) {
 	switch (position) {
 		case topScrolling:
 		case topReverse:
-			for (int i=0; i < 10; i++) {
+			for (int i = 0; i < 10; i++) {
 				int try_slot;
 				if (i < 5) {
 					try_slot = std::rand() % (this->fly_slots.size() / 2);
 				} else {
 					try_slot = std::rand() % (this->fly_slots.size());
 				}
-				if(this->fly_slots.at(try_slot) == false) {
+				if (this->fly_slots.at(try_slot) == false) {
 					this->fly_slots[try_slot] = true;
 					slot = try_slot;
 					break;
@@ -103,19 +102,14 @@ int DMCanvas::allocate_slot(Position position) {
 			}
 			break;
 		case bottomScrolling:
-			for (int i = 0; i < 10; i++)
-			{
+			for (int i = 0; i < 10; i++) {
 				int try_slot;
-				if (i < 5)
-				{
+				if (i < 5) {
 					try_slot = this->fly_slots.size() / 2 + std::rand() % (this->fly_slots.size() / 2);
-				}
-				else
-				{
+				} else {
 					try_slot = std::rand() % (this->fly_slots.size());
 				}
-				if (this->fly_slots.at(try_slot) == false)
-				{
+				if (this->fly_slots.at(try_slot) == false) {
 					this->fly_slots[try_slot] = true;
 					slot = try_slot;
 					break;
@@ -123,8 +117,8 @@ int DMCanvas::allocate_slot(Position position) {
 			}
 			break;
 		case topStatic:
-			for(int i=0; i < this->fixed_slots.size(); i++) {
-				if(this->fixed_slots.at(i) == false) {
+			for (int i = 0; i < this->fixed_slots.size(); i++) {
+				if (this->fixed_slots.at(i) == false) {
 					this->fixed_slots[i] = true;
 					slot = i;
 					break;
@@ -132,8 +126,8 @@ int DMCanvas::allocate_slot(Position position) {
 			}
 			break;
 		case bottomStatic:
-			for(int i=this->fixed_slots.size()-1; i >= 0; i--) {
-				if(this->fixed_slots.at(i) == false) {
+			for (int i = this->fixed_slots.size() - 1; i >= 0; i--) {
+				if (this->fixed_slots.at(i) == false) {
 					this->fixed_slots[i] = true;
 					slot = i;
 					break;
@@ -152,10 +146,6 @@ int DMCanvas::slot_y(int slot)
 	return (this->mainWindow->lineHeight * slot + VMARGIN);
 }
 
-QString DMCanvas::escape_text(QString & text) {
-	return text.toHtmlEscaped();
-}
-
 void DMCanvas::new_danmaku(QString text, int color, int position)
 {
 	Position pos = static_cast<Position>(position);
@@ -169,13 +159,23 @@ void DMCanvas::new_danmaku(QString text, int color, int position)
 		return;
 	}
 
-	auto slot = allocate_slot(pos);
-	if (slot < 0) {
-		myDebug << "Screen is Full!";
-		return;
-	}
+	Danmaku *l;
+	if (position == vertical) {
+		int slot = this->fixed_slots.size() - 1;
+		l = new Danmaku(text, color, pos, slot, this, this->mainWindow);
+		int dy = l->height() + 14;
+		QList<Danmaku *> cur = this->vertical_slots.values();
+		for (Danmaku *dm : cur) dm->shift_up(dy);
+		vertical_slots.insert(l);
+	} else {
+		int slot = allocate_slot(pos);
+		if (slot < 0) {
+			myDebug << "Screen is Full!";
+			return;
+		}
 
-	Danmaku *l = new Danmaku((text), color, pos, slot, this, this->mainWindow);
+		l = new Danmaku(text, color, pos, slot, this, this->mainWindow);
+	}
 	this->connect(l, &Danmaku::exited,
 				  this, &DMCanvas::delete_danmaku);
 	l->show();
@@ -192,6 +192,9 @@ void DMCanvas::delete_danmaku(Danmaku* dm) {
 		case topStatic:
 		case bottomStatic:
 			this->fixed_slots[dm->slot] = false;
+			break;
+		case vertical:
+			this->vertical_slots.remove(dm);
 			break;
 		default:
 			break;

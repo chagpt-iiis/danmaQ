@@ -67,7 +67,7 @@ DMMainWindow::DMMainWindow(QApplication *app)
 	hbox = new QHBoxLayout(this);
 	hbox->addWidget(new QLabel(tr("Password: "), this));
 	this->password = new QLineEdit("", this);
-	this->password->setMinimumWidth(200);
+	this->password->setMinimumWidth(512);
 	hbox->addWidget(this->password);
 	layout->addLayout(hbox);
 
@@ -80,8 +80,8 @@ DMMainWindow::DMMainWindow(QApplication *app)
 
 	this->setLayout(layout);
 
-	this->fontSize = 30;
-	this->lineHeight = this->fontSize * 1.2;
+	this->fontSize = 18;
+	this->lineHeight = this->fontSize * 1.8;
 	this->fontFamily = QString(
 		"WenQuanYi Micro Hei, Source Han Sans CN, Source Han Sans, WenQuanYi Zen Hei,"
 		"Microsoft YaHei, SimHei, "
@@ -186,6 +186,7 @@ void DMMainWindow::reset_canvases()
 	{
 		int x = screens[i]->size().width(), y = screens[i]->size().height();
 		QCheckBox *box = new QCheckBox(tr("Screen") + QString("%1: (%2, %3)").arg(i).arg(x).arg(y), this->screenWidget);
+		box->setCheckState(Qt::Checked);
 		this->screenBoxes.append(box);
 		layout->addWidget(box);
 	}
