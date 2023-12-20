@@ -79,10 +79,10 @@ void Subscriber::show(QString text, int color, int position)
 
 void Subscriber::connected()
 {
-	emit new_danmaku(tr("Server connected"), 16777215, 5);
+	emit new_danmaku(tr("Server connected"), -1, 5);
 }
 
 void Subscriber::disconnected()
 {
-	emit new_danmaku(tr("Server disconnected"), 16777215, 5);
+	emit new_danmaku(tr("Server disconnected"), -1, 5);
 }

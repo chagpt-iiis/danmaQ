@@ -78,7 +78,7 @@ void DMCanvas::init_slots()
 	}
 }
 
-QPoint DMCanvas::getGlboalPoint(QPoint p)
+QPoint DMCanvas::getGlobalPoint(QPoint p)
 {
 	return this->screen.topLeft() + p;
 }
@@ -153,13 +153,7 @@ int DMCanvas::slot_y(int slot)
 }
 
 QString DMCanvas::escape_text(QString & text) {
-	QString escaped = text.toHtmlEscaped();
-
-	escaped.replace(QRegExp("([^\\\\])\\\\n"), "\\1<br/>");
-	escaped.replace(QRegExp("\\\\\\\\n"), "\\n");
-	escaped.replace(QRegExp("\\[s\\](.+)\\[/s\\]"), "<s>\\1</s>");
-
-	return escaped;
+	return text.toHtmlEscaped();
 }
 
 void DMCanvas::new_danmaku(QString text, int color, int position)
@@ -181,7 +175,7 @@ void DMCanvas::new_danmaku(QString text, int color, int position)
 		return;
 	}
 
-	Danmaku *l = new Danmaku(escape_text(text), color, pos, slot, this, this->mainWindow);
+	Danmaku *l = new Danmaku((text), color, pos, slot, this, this->mainWindow);
 	this->connect(l, &Danmaku::exited,
 				  this, &DMCanvas::delete_danmaku);
 	l->show();

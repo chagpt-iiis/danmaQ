@@ -1,31 +1,47 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-   <head>
-      <title>danmakuQ socket.io client</title>
-   </head>
-   <body>
-      <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
-      <script src="qrc:socket.io.js"></script>
-      <script type="text/javascript">
-      function danmaku(channel) {
-         const context = channel.objects.context;
-         context.get_server((server)=>{
-            const query = server.split('"');
-            const socket = io(query[0].endsWith('/')?query[0]+"danmaku":query[0]+"/danmaku", { reconnect: true, query: { activity:query[1],tokenName:query[2],token:query[3] } });
-            socket.on('connect', (socket) => {
-               context.connected();
-            });
-            socket.on("disconnect", () => {
-               context.disconnected();
-            });
-            socket.on("danmaku", (data) => {
-               const color = parseInt(data.color) || 0;
-               const postion = parseInt(data.mode) || 1;
-               context.show(data.text, color, postion);
-            });
-         });
-      }
-      const channel = new QWebChannel(qt.webChannelTransport, danmaku);
-      </script>
-   </body>
+
+<head>
+	<title>danmakuQ socket.io client</title>
+</head>
+
+<body>
+	<script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+	<script src="qrc:socket.io.js"></script>
+	<script type="text/javascript">
+		function danmaku(channel) {
+			const context = channel.objects.context;
+			context.get_server(server => {
+				const query = server.split('"');
+				const sock = new io.Manager(query[0], {
+					addTrailingSlash: false,
+					autoConnect: false,
+					path: '/danmaku',
+					transports: ['websocket'],
+				});
+				sock.ondata = function (data) { this.emit("data", data); }
+				sock.connect(err => {
+					if (!err) return;
+					if (err.code === 'parser error') return;
+					if (err.message === 'websocket error') return;
+					if (sock._reconnecting || sock.backoff.attempts) return;
+					sock.reconnect();
+				});
+				sock.on('open', () => {
+					context.connected();
+					sock.engine.send(query[3]);
+				});
+				sock.on('close', () => context.disconnected());
+				sock.on('data', data => {
+					try {
+						data = JSON.parse(data);
+						context.show(data.content, data.color, 1);
+					} catch { }
+				});
+			});
+		}
+		const channel = new QWebChannel(qt.webChannelTransport, danmaku);
+	</script>
+</body>
+
 </html>

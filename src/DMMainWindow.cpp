@@ -45,7 +45,7 @@ DMMainWindow::DMMainWindow(QApplication *app)
 
 	QHBoxLayout *hbox = new QHBoxLayout(this);
 	hbox->addWidget(new QLabel(tr("Server: "), this));
-	this->server = new QLineEdit("https://dm.tuna.moe:8443", this);
+	this->server = new QLineEdit("wss://localhost:1832", this);
 	this->server->setMinimumWidth(200);
 	hbox->addWidget(this->server);
 	layout->addLayout(hbox);

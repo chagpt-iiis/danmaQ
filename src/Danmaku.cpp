@@ -53,15 +53,15 @@
 // Danmaku::Danmaku(QString text, QWidget *parent): Danmaku(text, "blue", FLY, -1, parent){};
 
 Danmaku::Danmaku(QString text, int color, Position position, int slot, DMCanvas *parent, DMMainWindow *mainWindow)
-	: QLabel(escape_text(text), parent)
+	: QLabel(text, parent)
 {
 	this->canvas = parent;
 	this->mainWindow = mainWindow;
 	this->setAttribute(Qt::WA_DeleteOnClose);
 
-	int r = (color >> 16) & 255, g = (color >> 8) & 255, b = color & 255;
+	int r = (color >> 24) & 255, g = (color >> 16) & 255, b = (color >> 8) & 255;
 
-	QString tcolor = QString("rgb(%1, %2, %3)").arg(r).arg(g).arg(b);
+	QString tcolor = QString("#%1").arg(color>>8, 6, 16, QChar('0'));
 	QColor bcolor = r + g + b > 400 ? QColor(0, 0, 0) : QColor(255, 255, 255);
 
 	QString style = style_tmpl
@@ -106,11 +106,6 @@ Danmaku::Danmaku(QString text, int color, Position position, int slot, DMCanvas 
 	this->init_position();
 }
 
-QString Danmaku::escape_text(QString text)
-{
-	return text;
-}
-
 QString Danmaku::style_tmpl = QString(
 	"font-size: %1pt;"
 	"font-weight: bold;"
@@ -148,8 +143,8 @@ void Danmaku::init_position()
 void Danmaku::linearMotion(int startX, int startY, int endX, int endY)
 {
 	QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry", this);
-	QPoint start_point = this->canvas->getGlboalPoint(QPoint(startX, startY));
-	QPoint end_point = this->canvas->getGlboalPoint(QPoint(endX, endY));
+	QPoint start_point = this->canvas->getGlobalPoint(QPoint(startX, startY));
+	QPoint end_point = this->canvas->getGlobalPoint(QPoint(endX, endY));
 	animation->setDuration(10 * 1000);
 	animation->setStartValue(
 		QRect(start_point.x(), start_point.y(), this->width(), this->height()));

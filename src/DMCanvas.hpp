@@ -34,7 +34,7 @@ public:
 
 	int slot_y(int slot);
 	QRect screen;
-	QPoint getGlboalPoint(QPoint p);
+	QPoint getGlobalPoint(QPoint p);
 
 public slots:
 	void new_danmaku(QString text, int color, int position);
